@@ -113,24 +113,21 @@ def run_cli_command(command_args, expected_pattern):
         (["fixtures/file"], "Slack Webhook"),  # Slack webhook
         (["fixtures/file"], "Discord Webhook"),  # Discord webhook
         (["fixtures/file"], "Guilded Webhook"),  # Guilded webhook
+        
+        # borderless cases
+        (["-o", "-db", "fixtures/file"], "Nothing found"),  # test_only_text
+        (["-be", "identifiers, token", "abc118.103.238.230abc"], "Nothing found"),  # test_boundaryless
+        (["-bi", "media", "abc118.103.238.230abc"], "Nothing found"),  # test_boundaryless2
+        (["-db", "abc118.103.238.230abc"], "Nothing found"),  # test_boundaryless3
+        
+        (["-db", "--format", " json ", "rBPAQmwMrt7FDDPNyjwFgwSqbWZPf6SLkk"], '"File Signatures":'),  # test_format
+        (["-db", "--format", " pretty ", "rBPAQmwMrt7FDDPNyjwFgwSqbWZPf6SLkk"], "Possible Identification"),  # test_format2
+        (["-db", ""], "Nothing found!"),  # test_nothing_found
+        (["-db", "THM{this is a flag}"], "THM{"),  # test_hello_world
     ],
 )
 def test_various_inputs(command_args, expected_pattern):
     run_cli_command(command_args, expected_pattern)
-
-
-def test_nothing_found():
-    runner = CliRunner()
-    result = runner.invoke(main, ["-db", ""])
-    assert result.exit_code == 0
-    assert "Nothing found!" in result.output
-
-
-def test_hello_world():
-    runner = CliRunner()
-    result = runner.invoke(main, ["-db", "THM{this is a flag}"])
-    assert result.exit_code == 0
-    assert "THM{" in result.output
 
 
 def test_filtration():
@@ -222,34 +219,6 @@ def test_file_pcap():
     run_cli_command(["-db", "fixtures/FollowTheLeader.pcap"], "Host:")
 
 
-def test_only_text():
-    runner = CliRunner()
-    result = runner.invoke(main, ["-o", "-db", "fixtures/file"])
-    assert result.exit_code == 0
-    assert "Nothing found" in result.output
-
-
-def test_boundaryless():
-    runner = CliRunner()
-    result = runner.invoke(main, ["-be", "identifiers, token", "abc118.103.238.230abc"])
-    assert result.exit_code == 0
-    assert "Nothing found" in result.output
-
-
-def test_boundaryless2():
-    runner = CliRunner()
-    result = runner.invoke(main, ["-bi", "media", "abc118.103.238.230abc"])
-    assert result.exit_code == 0
-    assert "Nothing found" in result.output
-
-
-def test_boundaryless3():
-    runner = CliRunner()
-    result = runner.invoke(main, ["-db", "abc118.103.238.230abc"])
-    assert result.exit_code == 0
-    assert "Nothing found" in result.output
-
-
 def test_mac_tags():
     runner = CliRunner()
     result = runner.invoke(
@@ -259,24 +228,6 @@ def test_mac_tags():
     assert result.exit_code == 0
     assert "Ethernet" in result.output
     assert "IP" in result.output
-
-
-def test_format():
-    runner = CliRunner()
-    result = runner.invoke(
-        main, ["-db", "--format", " json ", "rBPAQmwMrt7FDDPNyjwFgwSqbWZPf6SLkk"]
-    )
-    assert result.exit_code == 0
-    assert '"File Signatures":' in result.output
-
-
-def test_format2():
-    runner = CliRunner()
-    result = runner.invoke(
-        main, ["-db", "--format", " pretty ", "rBPAQmwMrt7FDDPNyjwFgwSqbWZPf6SLkk"]
-    )
-    assert result.exit_code == 0
-    assert "Possible Identification" in result.output
 
 
 def test_format3():
