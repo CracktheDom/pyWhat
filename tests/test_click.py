@@ -74,9 +74,6 @@ def run_cli_command(command_args, expected_pattern):
         (["-db", "--rarity", "0:", "key:value"], "Key:Value"),
         (["-db", "--rarity", "0:", "key : value"], "Key:Value"),
         (["-db", "--rarity", "0:", "key: value"], "Key:Value"),
-        (["-db", "--rarity", "0:", ":a:"], "Key:Value"),
-        (["-db", "--rarity", "0:", ":::::"], "Key:Value"),
-        (["-db", "--rarity", "0:", "a:b:c"], "a:b:c"),
         (["--rarity", "0:", "--boundaryless-rarity", "0:", "a:b:c"], "a:b"),
         (["--rarity", "0:", "--boundaryless-rarity", "0:", "a : b:c"], "a : b"),
 
@@ -192,6 +189,27 @@ def test_file_fixture2():
     result = runner.invoke(main, ["-db", "fixtures/file"])
     assert result.exit_code == 0
     assert "Dogecoin" in result.output
+
+
+def test_key_value_min_rarity_0_3():
+    runner = CliRunner()
+    result = runner.invoke(main, ["-db", "--rarity", "0:", ":a:"])
+    assert result.exit_code == 0
+    assert not re.findall("Key:Value", str(result.output))
+
+
+def test_key_value_min_rarity_0_4():
+    runner = CliRunner()
+    result = runner.invoke(main, ["-db", "--rarity", "0:", ":::::"])
+    assert result.exit_code == 0
+    assert not re.findall("Key:Value", str(result.output))
+
+
+def test_key_value_min_rarity_0_5():
+    runner = CliRunner()
+    result = runner.invoke(main, ["-db", "--rarity", "0:", "a:b:c"])
+    assert result.exit_code == 0
+    assert not re.findall("a:b:c", str(result.output))
 
 
 @pytest.mark.skip("Key:value turned off")
